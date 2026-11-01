@@ -241,6 +241,42 @@ W2 的到达率：236,471,589,884,1178,1767,2356
 | O3 告警与看板     | <未做 / 规则文件、触发记录、看板说明>               |
 | O4 迁移到小组项目 | <未做 / 仓库链接、测了哪个资源、结论>               |
 
+### 7.1 O1
+
+#### 7.1.1 预测
+
+`GOGC=100` 到 `GOGC=400`，相当于 GC 之间的内存增长量变成了原来的 4 倍，预测 `go_gc_cycles_total`、`go_gc_cpu_seconds_total` 会变成 1 / 4，`process_resident_memory_bytes` 会变成 4 倍以下，p99 会有可观测的下降。
+
+#### 7.1.2 `GOGC=100`
+
+| 观测数据                        | 值           |
+| ------------------------------- | ------------ |
+| `go_gc_cycles_total`            | 3023         |
+| `go_gc_cpu_seconds_total`       | 0.65921304   |
+| `process_resident_memory_bytes` | 1.327104e+07 |
+
+| step | target_rps | p99_ms |
+| ---- | ---------- | ------ |
+| 1    | 100        | 3.09   |
+| all  | -          | 3.09   |
+
+#### 7.1.3 `GOGC=400`
+
+| 观测数据                        | 值            |
+| ------------------------------- | ------------- |
+| `go_gc_cycles_total`            | 755           |
+| `go_gc_cpu_seconds_total`       | 0.200038797   |
+| `process_resident_memory_bytes` | 2.9011968e+07 |
+
+| step | target_rps | p99_ms |
+| ---- | ---------- | ------ |
+| 1    | 100        | 2.02   |
+| all  | -          | 2.02   |
+
+#### 7.1.4 结论
+
+`go_gc_cycles_total` 下降到约 1 / 4，`go_gc_cpu_seconds_total` 下降到约 1 / 3，因为 GC CPU 用时除了和 GC 次数有关外，还和每次 GC 的内存量有关，GC 内存越多耗时越大；`process_resident_memory_bytes` 增长到约 2 倍，因为内存不全是堆分配的；p99 下降了 1 ms。和 JVM 的 GC 概念类似，相当于是用空间换时间，用更大的 GC 间隔换更少的 STW，但 GC CPU 用时减少幅度和堆增大幅度不成比例，而且每次 STW 时间会变长，不是 `GOGC` 参数越大就越节省 CPU，要是对延迟敏感也不能随便增大 `GOGC`。
+
 ## 8. 成员分工
 
 每位成员一行，只填写 GitHub 用户名，无需填写姓名；行数应与小组人数一致。
