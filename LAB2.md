@@ -52,22 +52,27 @@ fsync 耗时（毫秒）：mean 1.685  p50 1.626  p90 1.825  p99 3.114  max 11.6
 
 ## 3. 任务 1：指标流水线
 
-两个抓取目标的状态（`curl -s 127.0.0.1:9090/api/v1/targets` 中两处 `"health"` 的值）：<填写>
+两个抓取目标的状态（`curl -s 127.0.0.1:9090/api/v1/targets` 中两处 `"health"` 的值）：`"up"`、`"up`
 
 本组编写的四条查询（与 `deploy/queries-red.txt` 一致）：
 
 ```text
-server_rps          <填写>
-server_error_rate   <填写>
-server_p99_ms       <填写>
-server_slo_good     <填写>
+server_rps          sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}])) / sum(rate(http_request_duration_seconds_sum{route="${route}"}[${window}]))
+server_error_rate   sum(rate(http_request_duration_seconds_count{route="${route}", code=~"5[0-9]{2}"}[${window}])) or vector(0) / sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}]))
+server_p99_ms       histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{route="${route}"}[${window}])))
+server_slo_good     sum(rate(http_request_duration_seconds_bucket{route="${route}", code="200", le="${slo}"}[${window}])) or vector(0) / sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}]))
 ```
 
 `runs/t1-light` 的数据（`scripts/table.sh runs/t1-light ok_rps mean_ms p99_ms server_rps server_mean_ms server_p99_ms cpu_ms_per_req db_query_mean_ms`）：
 
-<粘贴表格>
+| step | target_rps | ok_rps | mean_ms | p99_ms | server_rps | server_mean_ms | server_p99_ms | cpu_ms_per_req | db_query_mean_ms |
+| ---- | ---------- | ------ | ------- | ------ | ---------- | -------------- | ------------- | -------------- | ---------------- |
+| 1    | 0          | 0.0    | -       | -      | NaN        | NaN            | NaN           | +Inf           | NaN              |
+| 2    | 50         | 50.5   | 11.41   | 12.47  | 93.3985    | 10.7068        | 0.0199        | 0.529741       | 10.2947          |
+| 3    | 100        | 97.8   | 11.55   | 14.02  | 92.0771    | 10.8605        | 0.0199043     | 0.502143       | 10.4137          |
+| all  | -          | 74.2   | 11.50   | 13.17  | -          | -              | -             | -              | -                |
 
-从这次实验读出：每次查询实际占用连接 <填写> ms（`db_query_mean_ms`）；每个请求消耗的 CPU <填写> ms（`cpu_ms_per_req`，取 100 请求/秒的阶段）。
+从这次实验读出：每次查询实际占用连接 10.4137 ms（`db_query_mean_ms`）；每个请求消耗的 CPU 0.502143 ms（`cpu_ms_per_req`，取 100 请求/秒的阶段）。
 
 ## 4. 任务 2：读路径
 
