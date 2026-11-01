@@ -1,0 +1,24 @@
+File: enrolld
+Build ID: d0f893237d31dfdbc98c4584c80c3a7effdb2afd
+Type: cpu
+Time: 2026-11-01 23:32:35 CST
+Duration: 20s, Total samples = 2.53s (12.65%)
+Showing nodes accounting for 2.46s, 97.23% of 2.53s total
+Dropped 28 nodes (cum <= 0.01s)
+Showing top 15 nodes out of 31
+      flat  flat%   sum%        cum   cum%
+     2.32s 91.70% 91.70%      2.32s 91.70%  main.spin (inline)
+     0.11s  4.35% 96.05%      0.11s  4.35%  internal/runtime/syscall/linux.Syscall6
+     0.01s   0.4% 96.44%      0.02s  0.79%  internal/poll.(*FD).Read
+     0.01s   0.4% 96.84%      2.33s 92.09%  main.(*server).instrument.func1
+     0.01s   0.4% 97.23%      0.05s  1.98%  runtime.findRunnable
+         0     0% 97.23%      0.03s  1.19%  bufio.(*Reader).Peek
+         0     0% 97.23%      0.03s  1.19%  bufio.(*Reader).fill
+         0     0% 97.23%      0.07s  2.77%  bufio.(*Writer).Flush
+         0     0% 97.23%      0.06s  2.37%  internal/poll.(*FD).Write
+         0     0% 97.23%      0.07s  2.77%  internal/poll.ignoringEINTRIO (inline)
+         0     0% 97.23%      0.04s  1.58%  internal/runtime/syscall/linux.EpollWait
+         0     0% 97.23%      2.32s 91.70%  main.(*server).handleCourse
+         0     0% 97.23%      0.02s  0.79%  net.(*conn).Read
+         0     0% 97.23%      0.06s  2.37%  net.(*conn).Write
+         0     0% 97.23%      0.02s  0.79%  net.(*netFD).Read
