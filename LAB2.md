@@ -132,10 +132,10 @@ Showing top 15 nodes out of 31
 | 每个请求占用的 CPU（取 R1 哪一阶段的 `cpu_ms_per_req`，选取理由）    | 0.471544（step 5，未超过连接池上限且 CPU 负载最高） |
 | 推算的 CPU 上限 C                                                    | 2121                                                |
 | R2 的池大小 P2 = ceil(2 × C × 每次查询的秒数)                        | 44                                                  |
-| R2 的到达率（`scripts/rates.sh C 0.3 0.6 0.8 0.9 1.0 1.1 1.25 1.5`） | 13,26,35,40,44,48,55,66                             |
+| R2 的到达率（`scripts/rates.sh C 0.3 0.6 0.8 0.9 1.0 1.1 1.25 1.5`） | 636,1273,1697,1909,2121,2333,2651,3182              |
 | 预测：R2 中先达到上限的是                                            | CPU                                                 |
 
-`scripts/table.sh runs/r2-<…> ok_rps error_rate p99_ms server_p99_ms inflight_avg cpu_cores cpu_ms_per_req cpu_wait_threads sched_wait_p99_ms pool_in_use_avg svc_cpu_busy procs_running_avg cpu_psi_some`：
+`scripts/table.sh runs/r2-pool44 ok_rps error_rate p99_ms server_p99_ms inflight_avg cpu_cores cpu_ms_per_req cpu_wait_threads sched_wait_p99_ms pool_in_use_avg svc_cpu_busy procs_running_avg cpu_psi_some`：
 
 | step | target_rps | ok_rps | error_rate | p99_ms  | server_p99_ms | inflight_avg | cpu_cores | cpu_ms_per_req | cpu_wait_threads | sched_wait_p99_ms | pool_in_use_avg | svc_cpu_busy | procs_running_avg | cpu_psi_some |
 | ---- | ---------- | ------ | ---------- | ------- | ------------- | ------------ | --------- | -------------- | ---------------- | ----------------- | --------------- | ------------ | ----------------- | ------------ |
