@@ -58,9 +58,9 @@ fsync 耗时（毫秒）：mean 1.685  p50 1.626  p90 1.825  p99 3.114  max 11.6
 
 ```text
 server_rps          sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}])) / sum(rate(http_request_duration_seconds_sum{route="${route}"}[${window}]))
-server_error_rate   sum(rate(http_request_duration_seconds_count{route="${route}", code=~"5[0-9]{2}"}[${window}])) or vector(0) / sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}]))
+server_error_rate   (sum(rate(http_request_duration_seconds_count{route="${route}", code=~"5[0-9]{2}"}[${window}])) or vector(0)) / sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}]))
 server_p99_ms       histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{route="${route}"}[${window}])))
-server_slo_good     sum(rate(http_request_duration_seconds_bucket{route="${route}", code="200", le="${slo}"}[${window}])) or vector(0) / sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}]))
+server_slo_good     (sum(rate(http_request_duration_seconds_bucket{route="${route}", code="200", le="${slo}"}[${window}])) or vector(0)) / sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}]))
 ```
 
 `runs/t1-light` 的数据（`scripts/table.sh runs/t1-light ok_rps mean_ms p99_ms server_rps server_mean_ms server_p99_ms cpu_ms_per_req db_query_mean_ms`）：
