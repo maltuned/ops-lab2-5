@@ -6,17 +6,17 @@
 
 ## 1. 基本信息
 
-| 项                            | 内容                                                         |
-| ----------------------------- | ------------------------------------------------------------ |
-| 小组                          | 第 5 组                                                      |
-| 仓库地址                      | git@github.com:maltuned/ops-lab2-5                           |
-| 主机                          | 通用计算型 \| 2vCPUs \| 4GiB \| x1.2u.4g                     |
-| CPU                           | General Purpose Processor；2 vCPU；CPU 0 - CORE 0，CPU 1 - CORE 0 |
-| 内存                          | 3729                                                         |
-| 数据目录所在的盘              | SOURCE=/dev/vda1 FSTYPE=ext4；通用型SSD \| 40 GiB            |
-| 操作系统与内核                | Debian GNU/Linux 13 (trixie)；6.12.113+deb13-amd64           |
+| 项                            | 内容                                                                                                                                                                                                                             |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 小组                          | 第 5 组                                                                                                                                                                                                                          |
+| 仓库地址                      | https://github.com/maltuned/ops-lab2-5                                                                                                                                                                                           |
+| 主机                          | 通用计算型 \| 2vCPUs \| 4GiB \| x1.2u.4g                                                                                                                                                                                         |
+| CPU                           | General Purpose Processor；2 vCPU；CPU 0 - CORE 0，CPU 1 - CORE 0                                                                                                                                                                |
+| 内存                          | 3729                                                                                                                                                                                                                             |
+| 数据目录所在的盘              | SOURCE=/dev/vda1 FSTYPE=ext4；通用型SSD \| 40 GiB                                                                                                                                                                                |
+| 操作系统与内核                | Debian GNU/Linux 13 (trixie)；6.12.113+deb13-amd64                                                                                                                                                                               |
 | Go、Prometheus、node_exporter | go version go1.27.2 linux/amd64；prometheus, version 3.13.4 (branch: HEAD, revision: 007a9e9ba628f815ce83e1ba9f29b97981996c3c)；node_exporter, version 1.12.1 (branch: HEAD, revision: 6044da783597cc3b57aef7580ddcdcff58a4ee99) |
-| 分核                          | enrolld：1；loadgen、Prometheus、node_exporter：0            |
+| 分核                          | enrolld：1；loadgen、Prometheus、node_exporter：0                                                                                                                                                                                |
 
 ## 2. 任务 0：基线
 
@@ -57,9 +57,9 @@ fsync 耗时（毫秒）：mean 1.685  p50 1.626  p90 1.825  p99 3.114  max 11.6
 本组编写的四条查询（与 `deploy/queries-red.txt` 一致）：
 
 ```text
-server_rps          sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}])) / sum(rate(http_request_duration_seconds_sum{route="${route}"}[${window}]))
+server_rps          sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}]))
 server_error_rate   (sum(rate(http_request_duration_seconds_count{route="${route}", code=~"5[0-9]{2}"}[${window}])) or vector(0)) / sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}]))
-server_p99_ms       histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{route="${route}"}[${window}])))
+server_p99_ms       1000 * histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{route="${route}"}[${window}])))
 server_slo_good     (sum(rate(http_request_duration_seconds_bucket{route="${route}", code="200", le="${slo}"}[${window}])) or vector(0)) / sum(rate(http_request_duration_seconds_count{route="${route}"}[${window}]))
 ```
 
@@ -127,13 +127,13 @@ Showing top 15 nodes out of 31
 
 ### 4.4 R2：调大连接池（预测在 R2 之前写）
 
-| 项                                                           | 值与算法                                            |
-| ------------------------------------------------------------ | --------------------------------------------------- |
-| 每个请求占用的 CPU（取 R1 哪一阶段的 `cpu_ms_per_req`，选取理由） | 0.471544（step 5，未超过连接池上限且 CPU 负载最高） |
-| 推算的 CPU 上限 C                                            | 2121                                                |
-| R2 的池大小 P2 = ceil(2 × C × 每次查询的秒数)                | 44                                                  |
+| 项                                                                   | 值与算法                                            |
+| -------------------------------------------------------------------- | --------------------------------------------------- |
+| 每个请求占用的 CPU（取 R1 哪一阶段的 `cpu_ms_per_req`，选取理由）    | 0.471544（step 5，未超过连接池上限且 CPU 负载最高） |
+| 推算的 CPU 上限 C                                                    | 2121                                                |
+| R2 的池大小 P2 = ceil(2 × C × 每次查询的秒数)                        | 44                                                  |
 | R2 的到达率（`scripts/rates.sh C 0.3 0.6 0.8 0.9 1.0 1.1 1.25 1.5`） | 636,1273,1697,1909,2121,2333,2651,3182              |
-| 预测：R2 中先达到上限的是                                    | CPU                                                 |
+| 预测：R2 中先达到上限的是                                            | CPU                                                 |
 
 `scripts/table.sh runs/r2-pool44 ok_rps error_rate p99_ms server_p99_ms inflight_avg cpu_cores cpu_ms_per_req cpu_wait_threads sched_wait_p99_ms pool_in_use_avg svc_cpu_busy procs_running_avg cpu_psi_some`：
 
@@ -154,12 +154,12 @@ Showing top 15 nodes out of 31
 
 ### 5.1 预测：`-sync each`（W1 之前写）
 
-| 项                                                           | 值与算法                                                     |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| fsync 平均耗时（任务 0）                                     | 1.698 ms，取三次平均值                                       |
-| 推算的最大 TPS                                               | 589                                                          |
+| 项                                                                                                           | 值与算法                                                      |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| fsync 平均耗时（任务 0）                                                                                     | 1.698 ms，取三次平均值                                        |
+| 推算的最大 TPS                                                                                               | 589                                                           |
 | 达到上限时 enrolld 大约使用几个核（写路径没有 spin，按 4.3 节拆分出的“spin 以外的开销”估计每个写请求的 CPU） | 0.024 核，每请求 spin 以外的开销约 0.04 ms，589 × 0.04 / 1000 |
-| W1 的到达率（`scripts/rates.sh <最大 TPS> 0.2 0.4 0.6 0.8 0.9 1.0 1.1 1.2`） | 118,236,353,412,471,530,589,648,707                          |
+| W1 的到达率（`scripts/rates.sh <最大 TPS> 0.2 0.4 0.6 0.8 0.9 1.0 1.1 1.2`）                                 | 118,236,353,412,471,530,589,648,707                           |
 
 ### 5.2 W1：`-sync each`
 
@@ -290,10 +290,10 @@ $$
 
 （2）**W1 达到上限时 CPU、内存、磁盘的指标各是多少，哪几列表明磁盘饱和？**W1 第 6 阶段的资源数据如下，来自 `runs/w1-each/red.csv` 和 `use.csv`：
 
-| 资源 | 指标                                                         |
-| ---- | ------------------------------------------------------------ |
-| CPU  | 进程使用约 0.058 核，服务核忙碌率 5.4%，整机 iowait 约 44.43% |
-| 内存 | 最低可用内存约 3252 MiB，swap-in 为 0                        |
+| 资源 | 指标                                                                  |
+| ---- | --------------------------------------------------------------------- |
+| CPU  | 进程使用约 0.058 核，服务核忙碌率 5.4%，整机 iowait 约 44.43%         |
+| 内存 | 最低可用内存约 3252 MiB，swap-in 为 0                                 |
 | 磁盘 | 每秒写约 1728 次，flush 约 1152 次，平均队列长度 1.0884，利用率 95.7% |
 
 CPU 和内存都没有用满；磁盘利用率接近 100%、I/O 等待增加，加上吞吐停止增长和客户端延迟上升，说明串行磁盘同步路径已成为瓶颈。
@@ -415,6 +415,6 @@ $$
 | ------------- | ---------- |
 | <用户名>      | <填写>     |
 
-|      |      |
-| ---- | ---- |
-|      |      |
+|     |     |
+| --- | --- |
+|     |     |
